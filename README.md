@@ -17,11 +17,11 @@ Installation:
 
     git clone <repository-url>
 
-2. Open the index.html file in your web browser.
+2. Open the vega_lite.html file in your web browser.
 
 Usage:
 
-1. Open the index.html file in your web browser.
+1. Open the vega_lite.html file in your web browser.
 2. Explore the visualizations by interacting with them. You can select data points in the correlation chart, hover over elements to view tooltips, and observe trends in the different charts.
 
 Data Source:
