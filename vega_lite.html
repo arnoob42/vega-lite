@@ -1,58 +1,217 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Vega-Lite Bar Chart</title>
-    <meta charset="utf-8" />
+<!DOCTYPE html>
+<html lang="en">
 
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.27.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.17.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.24.0"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-View Visualization</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #d3bf89;
+      /* Set body background color */
 
-    <style media="screen">
-      /* Add space between Vega-Embed links  */
-      .vega-actions a {
-        margin-right: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Template for Embedding Vega-Lite Visualization</h1>
-    <!-- Container for the visualization -->
-    <div id="vis"></div>
+    }
 
-    <script>
-      // Assign the specification to a local variable vlSpec.
-      var vlSpec = {
-        $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-        data: {
-          values: [
-            {a: 'C', b: 2},
-            {a: 'C', b: 7},
-            {a: 'C', b: 4},
-            {a: 'D', b: 1},
-            {a: 'D', b: 2},
-            {a: 'D', b: 6},
-            {a: 'E', b: 8},
-            {a: 'E', b: 4},
-            {a: 'E', b: 7}
-          ]
-        },
-        mark: 'bar',
-        encoding: {
-          y: {field: 'a', type: 'nominal'},
-          x: {
-            aggregate: 'average',
-            field: 'b',
-            type: 'quantitative',
-            axis: {
-              title: 'Average of b'
-            }
+    .container {
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .quadrant {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .view {
+      flex: 1;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Multi-View Visualization</h1>
+    <h3>ELL824 VISUALIZATION</h3>
+    <p>Arnab Haldar (2023EET2756)</p>
+    <div id="multiviewSpec" class="view"></div>
+  </div>
+
+
+  <script>
+    // Fetch the data from the URL
+    fetch("https://i-m-arnab.github.io/vega-lite/data.json")
+      .then(response => response.json()) // Parse the JSON response
+      .then(data => {
+        // Log the data to the console
+        console.log("Data:", data);
+
+        // Extract the SalesOrders array from the data
+        const salesOrders = data.SalesOrders;
+
+
+        // Prepare data for Vega-Lite correlation plot
+        const correlationData = salesOrders.map(order => ({
+          "Units": order.Units,
+          "Unit Cost": order["Unit Cost"]
+        }));
+
+        // Prepare data for Vega-Lite streamgraph
+        const streamgraphData = salesOrders.map(order => ({
+          "OrderDate": order.OrderDate,
+          "Item": order.Item,
+          "Total": order.Total
+        }));
+
+        // Prepare data for Vega-Lite histogram
+        const histogramData = salesOrders.map(order => ({
+          "Units": order.Units
+        }));
+        const meanUnits = salesOrders.reduce((acc, order) => acc + order.Units, 0) / salesOrders.length;
+
+
+        // Prepare data for Vega-Lite donut chart
+        const donutData = salesOrders.map(order => ({
+          "Rep": order.Rep,
+          "Total": order.Total
+        }));
+
+        const correlationSpec = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "data": { "values": correlationData },
+          "title": "Correlation Chart",
+          "mark": "point",
+          "encoding": {
+            "x": { "field": "Units", "type": "quantitative" },
+            "y": { "field": "Unit Cost", "type": "quantitative" },
+            "color": {
+              "condition": { "selection": "brush", "value": "orange" },
+              "value": "blue"
+            },
+            "tooltip": [
+              { "field": "Units", "type": "quantitative" },
+              { "field": "Unit Cost", "type": "quantitative" }
+            ]
+          },
+          "selection": {
+            "brush": { "type": "interval" }
           }
-        }
-      };
+        };
 
-      // Embed the visualization in the container with id `vis`
-      vegaEmbed('#vis', vlSpec);
-    </script>
-  </body>
+        const streamgraphSpec = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "data": { "values": streamgraphData },
+          "title": "Streamgraph",
+          "mark": "area",
+          "encoding": {
+            "x": { "field": "OrderDate", "type": "temporal" },
+            "y": { "field": "Total", "type": "quantitative", "stack": "center" },
+            "color": { "field": "Item", "type": "nominal" },
+            "tooltip": [
+              { "field": "OrderDate", "type": "temporal" },
+              { "field": "Total", "type": "quantitative" },
+              { "field": "Item", "type": "nominal" }
+            ]
+          }
+        };
+
+        const histogramSpec = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "data": { "values": data.SalesOrders },
+          "title": "Histogram",
+          "layer": [
+            {
+              "mark": "bar",
+              "encoding": {
+                "x": {
+                  "bin": true,
+                  "field": "Units",
+                  "type": "quantitative"
+                },
+                "y": {
+                  "aggregate": "count",
+                  "type": "quantitative"
+                }
+              }
+            },
+            {
+              "mark": "rule",
+              "encoding": {
+                "x": {
+                  "aggregate": "mean",
+                  "field": "Units",
+                  "type": "quantitative"
+                },
+                "color": { "value": "red" },
+                "size": { "value": 2 }
+              }
+            }
+          ],
+          "tooltip": [
+            { "field": "Units", "type": "quantitative" },
+            { "field": "Region", "type": "nominal" },
+            { "field": "Item", "type": "nominal" }
+          ]
+        };
+
+        const donutSpec = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "data": { "values": donutData },
+          "title": "Donut Chart",
+          "mark": { "type": "arc", "innerRadius": 50 },
+          "encoding": {
+            "theta": { "field": "Total", "type": "quantitative", "stack": true },
+            "color": { "field": "Rep", "type": "nominal" },
+            "tooltip": [
+              { "field": "Total", "type": "quantitative" },
+              { "field": "Rep", "type": "nominal" }
+            ]
+          },
+          "view": { "stroke": null }
+        };
+
+
+        const multiviewSpec = {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "vconcat": [
+            {
+              "hconcat": [
+                donutSpec,
+                correlationSpec
+
+              ]
+            },
+            {
+              "hconcat": [
+                streamgraphSpec,
+                histogramSpec
+              ]
+            }
+          ]
+        };
+
+
+
+        // // Embed the visualizations in the containers
+        // vegaEmbed('#donut', donutSpec);
+        // vegaEmbed('#correlation', correlationSpec);
+        // vegaEmbed('#streamgraph', streamgraphSpec);
+        // vegaEmbed('#histogram', histogramSpec);
+        //
+        vegaEmbed('#multiviewSpec', multiviewSpec);
+
+
+
+      })
+      .catch(error => console.error("Error fetching data:", error));
+  </script>
+</body>
+
 </html>
