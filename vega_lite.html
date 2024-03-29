@@ -93,7 +93,8 @@
             "y": { "field": "Unit Cost", "type": "quantitative" },
             "color": {
               "condition": { "selection": "brush", "value": "orange" },
-              "value": "blue"
+              "value": "blue",
+              "type" :"nominal"
             },
             "tooltip": [
               { "field": "Units", "type": "quantitative" },
@@ -138,7 +139,12 @@
                 "y": {
                   "aggregate": "count",
                   "type": "quantitative"
-                }
+                },
+                 "color": {
+              "condition": { "selection": "brush", "value": "orange" },
+              "value": "blue",
+              "type" :"nominal"
+            },
               }
             },
             {
