@@ -58,10 +58,8 @@
 
 
         // Prepare data for Vega-Lite correlation plot
-        const correlationData = salesOrders.map(order => ({
-          "Units": order.Units,
-          "Unit Cost": order["Unit Cost"]
-        }));
+        const correlationData = data.SalesOrders;
+
 
         // Prepare data for Vega-Lite streamgraph
         const streamgraphData = salesOrders.map(order => ({
@@ -92,7 +90,7 @@
             "x": { "field": "Units", "type": "quantitative" },
             "y": { "field": "Unit Cost", "type": "quantitative" },
             "color": {
-              "condition": { "selection": "brush", "value": "orange" },
+              "condition": { "selection": "brush", "field": "Item" ,"type": "nominal"},
               "value": "blue"
             },
             "tooltip": [
